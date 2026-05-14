@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Key System</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(25, 25, 35, 0.95);
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 255, 120, 0.3);
+            text-align: center;
+            max-width: 460px;
+            border: 1px solid #00ff88;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            color: #00ff88;
+            font-size: 28px;
+        }
+
+        .date {
+            color: #00cc77;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .key-box {
+            background: #111;
+            padding: 22px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin: 25px 0;
+            border: 2px solid #00ff88;
+            user-select: all;
+            word-break: break-all;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .key-box:hover {
+            background: #1a1a1a;
+            transform: scale(1.02);
+        }
+
+        button {
+            background: #00ff88;
+            color: black;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 8px;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #00cc6e;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>DELTA EXECUTOR</h1>
+
+        <div class="date" id="currentDate"></div>
+
+        <p>Key del Día</p>
+
+        <div class="key-box" id="key" onclick="copyKey()">
+            Cargando key...
+        </div>
+
+        <button id="copyBtn" onclick="copyKey()">
+            📋 Copiar Key
+        </button>
+
+        <button onclick="window.location.reload()">
+            🔄 Actualizar Key
+        </button>
+
+        <div class="footer">
+            La key cambia automáticamente cada día<br>
+            Formato: <strong>Key_xxxxxxxxxxxx</strong>
+        </div>
+
+    </div>
+
+    <script>
+
+        function generateDailyKey() {
+
+            const now = new Date();
+
+            let seed =
+                (now.getFullYear() * 10000) +
+                ((now.getMonth() + 1) * 100) +
+                now.getDate();
+
+            let keyPart = "";
+
+            const chars =
+                "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            for (let i = 0; i < 16; i++) {
+
+                seed = (seed * 9301 + 49297) % 233280;
+
+                keyPart += chars[seed % chars.length];
+            }
+
+            return `Key_${keyPart}`;
+        }
+
+        function updateKey() {
+
+            const keyElement =
+                document.getElementById("key");
+
+            const dateElement =
+                document.getElementById("currentDate");
+
+            const todayKey =
+                generateDailyKey();
+
+            keyElement.innerText =
+                todayKey;
+
+            const now = new Date();
+
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+
+            dateElement.innerText =
+                "Hoy: " +
+                now.toLocaleDateString('es-ES', options);
+        }
+
+        async function copyKey() {
+
+            const key =
+                document.getElementById("key").innerText;
+
+            const button =
+                document.getElementById("copyBtn");
+
+            try {
+
+                await navigator.clipboard.writeText(key);
+
+                localStorage.setItem(
+                    "lastCopiedKey",
+                    key
+                );
+
+                button.innerText =
+                    "✅ ¡Key Copiada!";
+
+                button.style.background =
+                    "#00cc6e";
+
+                setTimeout(() => {
+
+                    button.innerText =
+                        "📋 Copiar Key";
+
+                    button.style.background =
+                        "#00ff88";
+
+                }, 2000);
+
+            } catch (err) {
+
+                alert("No se pudo copiar la key");
+            }
+        }
+
+        window.onload = () => {
+
+            updateKey();
+        };
+
+        setInterval(() => {
+
+            const now = new Date();
+
+            if (
+                now.getHours() === 0 &&
+                now.getMinutes() === 0
+            ) {
+                updateKey();
+            }
+
+        }, 60000);
+
+    </script>
+</body>
+</html>
